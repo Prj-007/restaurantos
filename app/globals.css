@@ -24,3 +24,19 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Form controls are styled with light backgrounds throughout the app
+   (bg-white / border-zinc-300 etc.), so force dark, readable text/caret
+   regardless of the OS color scheme — otherwise dark-mode users inherit
+   the page's light --foreground text color on a white input background. */
+input,
+select,
+textarea {
+  color: #171717;
+  caret-color: #171717;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #a1a1aa;
+}
