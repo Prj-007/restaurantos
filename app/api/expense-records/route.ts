@@ -1,20 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { getMonthRange } from "@/lib/monthRange";
 
 export async function GET(req: NextRequest) {
   const session = await getSession();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const month = req.nextUrl.searchParams.get("month");
-  const where = month
-    ? {
-        expenseDate: {
-          gte: new Date(`${month}-01T00:00:00.000Z`),
-          lt: new Date(new Date(`${month}-01T00:00:00.000Z`).setUTCMonth(new Date(`${month}-01T00:00:00.000Z`).getUTCMonth() + 1)),
-        },
-      }
-    : {};
+  const where = month ? { expenseDate: getMonthRange(month) } : {};
 
   const records = await prisma.expenseRecord.findMany({
     where,

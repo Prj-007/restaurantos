@@ -85,6 +85,12 @@ export type PricingSuggestion = {
   rationale: string;
 };
 
+// Pure so it's independently testable (no Gemini call): sum of quantity x
+// cost-per-unit across a recipe's ingredients.
+export function computeFoodCost(ingredients: { quantity: number; costPerUnit: number }[]): number {
+  return ingredients.reduce((sum, i) => sum + i.quantity * i.costPerUnit, 0);
+}
+
 export async function suggestMenuPrice(input: {
   menuItemName: string;
   currentPrice: number;
@@ -98,7 +104,7 @@ export async function suggestMenuPrice(input: {
     },
   });
 
-  const foodCost = input.ingredients.reduce((sum, i) => sum + i.quantity * i.costPerUnit, 0);
+  const foodCost = computeFoodCost(input.ingredients);
 
   const prompt = `A restaurant menu item "${input.menuItemName}" is currently priced at ${input.currentPrice}.
 Its recipe cost breakdown (raw ingredient cost per serving) is:
