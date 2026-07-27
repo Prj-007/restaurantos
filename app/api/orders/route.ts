@@ -9,7 +9,7 @@ export async function GET() {
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const orders = await prisma.order.findMany({
     orderBy: { createdAt: "desc" },
-    include: { table: true, items: { include: { menuItem: true } } },
+    include: { table: true, items: { include: { menuItem: true } }, payments: true },
   });
   return NextResponse.json(orders);
 }
@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
       tableId: body.tableId || null,
       items: { create: items.map((i) => ({ menuItemId: i.menuItemId, quantity: i.quantity, unitPrice: i.unitPrice })) },
     },
-    include: { table: true, items: { include: { menuItem: true } } },
+    include: { table: true, items: { include: { menuItem: true } }, payments: true },
   });
 
   if (body.tableId) {

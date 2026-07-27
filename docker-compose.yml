@@ -1,0 +1,42 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: restaurantos
+      POSTGRES_PASSWORD: restaurantos
+      POSTGRES_DB: restaurantos
+    ports:
+      - "5432:5432"
+    volumes:
+      - restaurantos_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U restaurantos"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: postgresql://restaurantos:restaurantos@postgres:5432/restaurantos?sslmode=disable
+      JWT_SECRET: ${JWT_SECRET:-replace-with-a-long-random-string}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      BLOB_READ_WRITE_TOKEN: ${BLOB_READ_WRITE_TOKEN:-}
+      PUSHER_APP_ID: ${PUSHER_APP_ID:-}
+      PUSHER_KEY: ${PUSHER_KEY:-}
+      PUSHER_SECRET: ${PUSHER_SECRET:-}
+      PUSHER_CLUSTER: ${PUSHER_CLUSTER:-}
+      NEXT_PUBLIC_PUSHER_KEY: ${NEXT_PUBLIC_PUSHER_KEY:-}
+      NEXT_PUBLIC_PUSHER_CLUSTER: ${NEXT_PUBLIC_PUSHER_CLUSTER:-}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  restaurantos_pgdata:

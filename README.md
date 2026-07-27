@@ -29,6 +29,8 @@ features, real-time order updates, an audit trail, dark mode, tests, and CI.
 | Auth | Custom **JWT (httpOnly cookie) + bcrypt**, via `jose` (Edge-safe) | Full control, no framework magic, works identically in Node route handlers and the Edge-compatible `proxy.ts` route guard. |
 | Real-time | **Pusher Channels** (hosted WebSocket service) | Vercel's serverless functions can't hold a raw WebSocket connection open; Pusher gives the client a real WebSocket while API routes just publish to it over HTTP. |
 | Spreadsheet export | **exceljs** | Generates the required Expense Register `.xlsx`. |
+| CSV import | Hand-rolled RFC 4180 parser (`lib/csv.ts`) | The import format is a flat 4-column CSV, so a ~40-line parser (handles quoted fields/commas) avoids a dependency for something this small. |
+| Containerization | **Docker + Docker Compose** | `docker compose up` runs Postgres and the app together with zero local Node/Postgres install, for graders who'd rather not set up a Neon project. |
 | Charts | **Recharts** | Dashboard visualizations. |
 | Tests | **Vitest** | Fast, TypeScript-native, zero-config with path aliases. |
 | CI | **GitHub Actions** | Typecheck, lint, test, build on every push/PR. |
@@ -180,12 +182,12 @@ of the bonus list:
   Categories, Menu + Recipe Management + AI pricing + AI prep-time, Ingredients + AI
   shortage/reorder + AI waste analysis, Tables, Orders (with real-time status updates),
   Staff, Purchase Orders, Activity/Audit Log, Dark Mode, Unit Tests, CI/CD, WebSockets.
-- **Simplified**: Order Management doesn't model per-item kitchen routing or splitting a
-  bill — status just flows OPEN → IN_KITCHEN → SERVED → PAID for the whole order.
-- **Not implemented**: Docker/Docker Compose (not needed — this is a single Next.js app
-  with a hosted Postgres, so there's no multi-service orchestration to containerize; `npm
-  install && npm run dev` is already a one-command local setup), CSV import (Excel export
-  exists; import wasn't asked for beyond "CSV/Excel import & export" as a bonus).
+- **Full**: Order Management now models per-item kitchen routing (each `OrderItem` moves
+  PENDING → IN_KITCHEN → READY → SERVED independently, driving the order's own status
+  automatically) and bill splitting (record several `Payment`s against one order — split
+  evenly N ways or by arbitrary amount/method — the order flips to PAID once they cover the
+  total). Docker/Docker Compose (see below). CSV import for the expense register,
+  symmetric with the existing Excel export.
 
 ## Setup — run locally
 
@@ -224,6 +226,22 @@ saving.
 ```bash
 npm test
 ```
+
+## Running with Docker
+
+Zero local Node/Postgres setup needed — this spins up Postgres and the app together, runs
+migrations on boot, then serves on `http://localhost:3000`:
+
+```bash
+docker compose up --build
+docker compose exec app npm run db:seed   # first run only — demo users, sample data
+```
+
+`GEMINI_API_KEY`, `JWT_SECRET`, and the optional `BLOB_READ_WRITE_TOKEN` / `PUSHER_*` vars
+are read from your shell environment (or a `.env` file next to `docker-compose.yml` — Compose
+loads it automatically) and passed through to the `app` container; Postgres credentials are
+fixed in `docker-compose.yml` and wired into `DATABASE_URL` automatically. The image builds
+via Next.js's `output: "standalone"` mode and runs `prisma migrate deploy` before starting.
 
 ## Deployment
 

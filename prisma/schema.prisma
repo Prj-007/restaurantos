@@ -38,6 +38,23 @@ enum OrderStatus {
   CANCELLED
 }
 
+// Per-item kitchen routing. Order.status is derived from these (see
+// app/api/orders/[id]/items/[itemId]/route.ts) except for PAID/CANCELLED,
+// which are set directly by billing actions.
+enum OrderItemStatus {
+  PENDING
+  IN_KITCHEN
+  READY
+  SERVED
+}
+
+enum PaymentMethod {
+  CASH
+  CARD
+  UPI
+  OTHER
+}
+
 model User {
   id           String   @id @default(cuid())
   name         String
@@ -108,19 +125,35 @@ model Order {
   status    OrderStatus @default(OPEN)
   createdAt DateTime    @default(now())
 
-  table RestaurantTable? @relation(fields: [tableId], references: [id])
-  items OrderItem[]
+  table    RestaurantTable? @relation(fields: [tableId], references: [id])
+  items    OrderItem[]
+  payments Payment[]
 }
 
 model OrderItem {
-  id         String @id @default(cuid())
+  id         String          @id @default(cuid())
   orderId    String
   menuItemId String
   quantity   Int
   unitPrice  Float
+  status     OrderItemStatus @default(PENDING)
 
   order    Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
   menuItem MenuItem @relation(fields: [menuItemId], references: [id])
+}
+
+// A single payment applied toward an order's bill. Splitting a bill (evenly
+// or by chosen items/amounts) is just recording several of these against
+// the same order; the order becomes PAID once they cover the total.
+model Payment {
+  id        String        @id @default(cuid())
+  orderId   String
+  amount    Float
+  method    PaymentMethod @default(CASH)
+  label     String? // e.g. "Seat 2" or "Split 1/3" — free text for the cashier's reference
+  createdAt DateTime      @default(now())
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
 }
 
 model Staff {

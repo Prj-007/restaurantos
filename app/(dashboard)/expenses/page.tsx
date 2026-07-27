@@ -21,6 +21,8 @@ export default function ExpensesPage() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ categoryId: "", description: "", amount: "", expenseDate: "" });
+  const [importing, setImporting] = useState(false);
+  const [importResult, setImportResult] = useState<{ imported: number; skipped: number; errors: { row: number; reason: string }[] } | null>(null);
 
   async function load() {
     setLoading(true);
@@ -51,6 +53,21 @@ export default function ExpensesPage() {
     load();
   }
 
+  async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    setImporting(true);
+    setImportResult(null);
+    const body = new FormData();
+    body.append("file", file);
+    const res = await fetch("/api/expense-register/import", { method: "POST", body });
+    const result = await res.json();
+    setImportResult(res.ok ? result : { imported: 0, skipped: 0, errors: [{ row: 0, reason: result.error ?? "Import failed" }] });
+    setImporting(false);
+    load();
+  }
+
   const total = records.reduce((sum, r) => sum + r.amount, 0);
 
   return (
@@ -65,6 +82,10 @@ export default function ExpensesPage() {
           <a href={`/api/expense-register/export${month ? `?month=${month}` : ""}`} className="rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-1.5 text-sm font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800">
             Export .xlsx
           </a>
+          <label className="cursor-pointer rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-1.5 text-sm font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800">
+            {importing ? "Importing..." : "Import .csv"}
+            <input type="file" accept=".csv,text/csv" onChange={handleImport} disabled={importing} className="hidden" />
+          </label>
           <Link href="/expenses/categories" className="rounded-md border border-zinc-300 dark:border-zinc-700 px-3 py-1.5 text-sm font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800">
             Categories
           </Link>
@@ -73,6 +94,25 @@ export default function ExpensesPage() {
           </button>
         </div>
       </div>
+
+      {importResult && (
+        <div className="mt-4 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 text-sm">
+          <p className="font-medium text-zinc-900 dark:text-zinc-100">
+            Imported {importResult.imported} row{importResult.imported === 1 ? "" : "s"}
+            {importResult.skipped > 0 ? `, skipped ${importResult.skipped}` : ""}.
+          </p>
+          <p className="mt-1 text-xs text-zinc-500">
+            Expected header: Date, Category, Description, Amount — Category must match an existing category name exactly.
+          </p>
+          {importResult.errors.length > 0 && (
+            <ul className="mt-2 space-y-0.5 text-xs text-red-600">
+              {importResult.errors.map((err, i) => (
+                <li key={i}>{err.row > 0 ? `Row ${err.row}: ` : ""}{err.reason}</li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
 
       {showForm && (
         <form onSubmit={handleCreate} className="mt-4 grid grid-cols-2 gap-3 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 sm:grid-cols-4">
