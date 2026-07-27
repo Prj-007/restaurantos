@@ -7,7 +7,7 @@ auto-generated Expense Register.
 
 ## Live demo
 
-- App: `<filled in after deploy>`
+- App: https://restaurantos-sage.vercel.app
 - Demo accounts (password `password123` for all):
   - `owner@restaurantos.dev` — Owner (full access)
   - `manager@restaurantos.dev` — Manager (full access)
@@ -22,7 +22,7 @@ auto-generated Expense Register.
 | Frontend + backend | **Next.js 16 (App Router)**, TypeScript | One deployable app instead of three separate services — faster to build correctly and reason about, still cleanly layered (UI in `app/`, data access in `lib/`, API in `app/api/`). |
 | Database | **PostgreSQL** via **Prisma** | Required by the brief. Prisma gives type-safe queries and versioned migrations (`prisma/migrations`). |
 | Hosted Postgres | **Neon** (serverless Postgres) | Free, instant provisioning, same connection string works locally and in production. |
-| AI / OCR | **Google Gemini** (multimodal vision, structured JSON output) | Reads both printed and handwritten invoices from a single image/PDF input, and Gemini's `responseSchema` forces valid structured JSON back — no brittle regex/text parsing. |
+| AI / OCR | **Google Gemini 2.5 Flash** (multimodal vision, structured JSON output) | Reads both printed and handwritten invoices from a single image/PDF input, and Gemini's `responseSchema` forces valid structured JSON back — no brittle regex/text parsing. Verified against the assessment's sample invoices: near-perfect field and line-item extraction on both a printed multi-line invoice and a genuinely handwritten one. |
 | File storage | **Vercel Blob** (falls back to local `/public/uploads` if no token is set) | Vercel's serverless filesystem is ephemeral, so uploaded invoice files need object storage in production. |
 | Auth | Custom **JWT (httpOnly cookie) + bcrypt**, via `jose` (Edge-safe) | Full control, no framework magic, works identically in Node route handlers and the Edge-compatible `proxy.ts` route guard. |
 | Spreadsheet export | **exceljs** | Generates the required Expense Register `.xlsx`. |
