@@ -103,21 +103,21 @@ export default function InvoiceUploadPage() {
 
   return (
     <div>
-      <h1 className="text-xl font-semibold text-zinc-900">AI Invoice Processing</h1>
-      <p className="text-sm text-zinc-500">
+      <h1 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">AI Invoice Processing</h1>
+      <p className="text-sm text-zinc-500 dark:text-zinc-400">
         Upload printed or handwritten supplier invoices (image or PDF). Gemini extracts the data — review and correct it, then confirm to
         save it to the database and the expense register.
       </p>
 
-      <div className="mt-4 rounded-lg border border-dashed border-zinc-300 bg-white p-6 text-center">
+      <div className="mt-4 rounded-lg border border-dashed border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 p-6 text-center">
         <input
           type="file"
           multiple
           accept="image/*,application/pdf"
           onChange={(e) => setFiles(Array.from(e.target.files ?? []))}
-          className="mx-auto block text-sm"
+          className="mx-auto block text-sm text-zinc-700 dark:text-zinc-300"
         />
-        {files.length > 0 && <p className="mt-2 text-xs text-zinc-500">{files.length} file(s) selected</p>}
+        {files.length > 0 && <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">{files.length} file(s) selected</p>}
         <button
           onClick={handleUpload}
           disabled={files.length === 0 || processing}
@@ -129,15 +129,15 @@ export default function InvoiceUploadPage() {
 
       <div className="mt-6 space-y-6">
         {drafts.map((draft, idx) => (
-          <div key={idx} className="rounded-lg border border-zinc-200 bg-white p-4">
+          <div key={idx} className="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4">
             <div className="flex items-center justify-between">
-              <p className="text-sm font-medium text-zinc-900">{draft.fileName}</p>
+              <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">{draft.fileName}</p>
               {draft.extraction && (
                 <div className="flex items-center gap-2 text-xs">
                   {draft.extraction.isHandwritten && (
                     <span className="rounded-full bg-purple-100 px-2 py-0.5 font-medium text-purple-700">Handwritten</span>
                   )}
-                  <span className="rounded-full bg-zinc-100 px-2 py-0.5 font-medium text-zinc-600">
+                  <span className="rounded-full bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 font-medium text-zinc-600 dark:text-zinc-400">
                     Confidence {Math.round(draft.extraction.confidence * 100)}%
                   </span>
                 </div>
@@ -150,42 +150,42 @@ export default function InvoiceUploadPage() {
               <div className="mt-3">
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                   <div>
-                    <label className="block text-xs font-medium text-zinc-600">Vendor</label>
+                    <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400">Vendor</label>
                     <input
                       value={draft.extraction.vendorName ?? ""}
                       onChange={(e) => updateField(idx, { vendorName: e.target.value })}
-                      className="mt-1 w-full rounded-md border border-zinc-300 px-2 py-1 text-sm"
+                      className="mt-1 w-full rounded-md border border-zinc-300 dark:border-zinc-700 px-2 py-1 text-sm"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-zinc-600">Invoice #</label>
+                    <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400">Invoice #</label>
                     <input
                       value={draft.extraction.invoiceNumber ?? ""}
                       onChange={(e) => updateField(idx, { invoiceNumber: e.target.value })}
-                      className="mt-1 w-full rounded-md border border-zinc-300 px-2 py-1 text-sm"
+                      className="mt-1 w-full rounded-md border border-zinc-300 dark:border-zinc-700 px-2 py-1 text-sm"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-zinc-600">Date</label>
+                    <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400">Date</label>
                     <input
                       type="date"
                       value={draft.extraction.invoiceDate ?? ""}
                       onChange={(e) => updateField(idx, { invoiceDate: e.target.value })}
-                      className="mt-1 w-full rounded-md border border-zinc-300 px-2 py-1 text-sm"
+                      className="mt-1 w-full rounded-md border border-zinc-300 dark:border-zinc-700 px-2 py-1 text-sm"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-zinc-600">Currency</label>
+                    <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400">Currency</label>
                     <input
                       value={draft.extraction.currency ?? ""}
                       onChange={(e) => updateField(idx, { currency: e.target.value })}
-                      className="mt-1 w-full rounded-md border border-zinc-300 px-2 py-1 text-sm"
+                      className="mt-1 w-full rounded-md border border-zinc-300 dark:border-zinc-700 px-2 py-1 text-sm"
                     />
                   </div>
                 </div>
 
                 <table className="mt-3 w-full text-sm">
-                  <thead className="text-left text-xs uppercase text-zinc-500">
+                  <thead className="text-left text-xs uppercase text-zinc-500 dark:text-zinc-400">
                     <tr>
                       <th className="py-1">Description</th>
                       <th className="py-1 w-20">Qty</th>
@@ -195,12 +195,12 @@ export default function InvoiceUploadPage() {
                   </thead>
                   <tbody>
                     {draft.extraction.lineItems.map((li, itemIdx) => (
-                      <tr key={itemIdx} className="border-t border-zinc-100">
+                      <tr key={itemIdx} className="border-t border-zinc-100 dark:border-zinc-800">
                         <td className="py-1 pr-2">
                           <input
                             value={li.description}
                             onChange={(e) => updateLineItem(idx, itemIdx, { description: e.target.value })}
-                            className="w-full rounded border border-zinc-200 px-1.5 py-0.5"
+                            className="w-full rounded border border-zinc-200 dark:border-zinc-800 px-1.5 py-0.5"
                           />
                         </td>
                         <td className="py-1 pr-2">
@@ -208,7 +208,7 @@ export default function InvoiceUploadPage() {
                             type="number"
                             value={li.quantity ?? ""}
                             onChange={(e) => updateLineItem(idx, itemIdx, { quantity: Number(e.target.value) })}
-                            className="w-full rounded border border-zinc-200 px-1.5 py-0.5"
+                            className="w-full rounded border border-zinc-200 dark:border-zinc-800 px-1.5 py-0.5"
                           />
                         </td>
                         <td className="py-1 pr-2">
@@ -216,7 +216,7 @@ export default function InvoiceUploadPage() {
                             type="number"
                             value={li.unitPrice ?? ""}
                             onChange={(e) => updateLineItem(idx, itemIdx, { unitPrice: Number(e.target.value) })}
-                            className="w-full rounded border border-zinc-200 px-1.5 py-0.5"
+                            className="w-full rounded border border-zinc-200 dark:border-zinc-800 px-1.5 py-0.5"
                           />
                         </td>
                         <td className="py-1">
@@ -224,7 +224,7 @@ export default function InvoiceUploadPage() {
                             type="number"
                             value={li.lineTotal ?? ""}
                             onChange={(e) => updateLineItem(idx, itemIdx, { lineTotal: Number(e.target.value) })}
-                            className="w-full rounded border border-zinc-200 px-1.5 py-0.5"
+                            className="w-full rounded border border-zinc-200 dark:border-zinc-800 px-1.5 py-0.5"
                           />
                         </td>
                       </tr>
@@ -234,41 +234,41 @@ export default function InvoiceUploadPage() {
 
                 <div className="mt-3 grid grid-cols-3 gap-3 text-sm">
                   <div>
-                    <label className="block text-xs font-medium text-zinc-600">Subtotal</label>
+                    <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400">Subtotal</label>
                     <input
                       type="number"
                       value={draft.extraction.subtotal ?? ""}
                       onChange={(e) => updateField(idx, { subtotal: Number(e.target.value) })}
-                      className="mt-1 w-full rounded-md border border-zinc-300 px-2 py-1"
+                      className="mt-1 w-full rounded-md border border-zinc-300 dark:border-zinc-700 px-2 py-1"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-zinc-600">Tax</label>
+                    <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400">Tax</label>
                     <input
                       type="number"
                       value={draft.extraction.taxAmount ?? ""}
                       onChange={(e) => updateField(idx, { taxAmount: Number(e.target.value) })}
-                      className="mt-1 w-full rounded-md border border-zinc-300 px-2 py-1"
+                      className="mt-1 w-full rounded-md border border-zinc-300 dark:border-zinc-700 px-2 py-1"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-zinc-600">Total</label>
+                    <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400">Total</label>
                     <input
                       type="number"
                       value={draft.extraction.totalAmount ?? ""}
                       onChange={(e) => updateField(idx, { totalAmount: Number(e.target.value) })}
-                      className="mt-1 w-full rounded-md border border-zinc-300 px-2 py-1 font-semibold"
+                      className="mt-1 w-full rounded-md border border-zinc-300 dark:border-zinc-700 px-2 py-1 font-semibold"
                     />
                   </div>
                 </div>
 
                 <div className="mt-3 grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-medium text-zinc-600">Match supplier (optional)</label>
+                    <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400">Match supplier (optional)</label>
                     <select
                       value={choices[idx]?.supplierId ?? ""}
                       onChange={(e) => setChoices((c) => ({ ...c, [idx]: { ...c[idx], supplierId: e.target.value, expenseCategoryId: c[idx]?.expenseCategoryId ?? categories[0]?.id ?? "" } }))}
-                      className="mt-1 w-full rounded-md border border-zinc-300 px-2 py-1.5 text-sm"
+                      className="mt-1 w-full rounded-md border border-zinc-300 dark:border-zinc-700 px-2 py-1.5 text-sm"
                     >
                       <option value="">No match / new supplier</option>
                       {suppliers.map((s) => (
@@ -279,11 +279,11 @@ export default function InvoiceUploadPage() {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-zinc-600">Expense category</label>
+                    <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400">Expense category</label>
                     <select
                       value={choices[idx]?.expenseCategoryId ?? categories[0]?.id ?? ""}
                       onChange={(e) => setChoices((c) => ({ ...c, [idx]: { supplierId: c[idx]?.supplierId ?? "", expenseCategoryId: e.target.value } }))}
-                      className="mt-1 w-full rounded-md border border-zinc-300 px-2 py-1.5 text-sm"
+                      className="mt-1 w-full rounded-md border border-zinc-300 dark:border-zinc-700 px-2 py-1.5 text-sm"
                     >
                       {categories.map((c) => (
                         <option key={c.id} value={c.id}>

@@ -19,10 +19,10 @@ const COLORS = ["#18181b", "#52525b", "#a1a1aa", "#d4d4d8", "#71717a", "#3f3f46"
 
 function StatCard({ label, value, sub }: { label: string; value: string | number; sub?: string }) {
   return (
-    <div className="rounded-lg border border-zinc-200 bg-white p-4">
-      <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">{label}</p>
-      <p className="mt-1 text-2xl font-semibold text-zinc-900">{value}</p>
-      {sub && <p className="mt-0.5 text-xs text-zinc-500">{sub}</p>}
+    <div className="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4">
+      <p className="text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{label}</p>
+      <p className="mt-1 text-2xl font-semibold text-zinc-900 dark:text-zinc-100">{value}</p>
+      {sub && <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">{sub}</p>}
     </div>
   );
 }
@@ -38,7 +38,7 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-xl font-semibold text-zinc-900">Dashboard</h1>
+      <h1 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">Dashboard</h1>
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
         <StatCard label="Active Orders" value={data.activeOrders} />
@@ -50,8 +50,8 @@ export default function DashboardPage() {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <div className="rounded-lg border border-zinc-200 bg-white p-4">
-          <p className="text-sm font-medium text-zinc-700">Monthly Expense Trend (6 mo)</p>
+        <div className="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4">
+          <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Monthly Expense Trend (6 mo)</p>
           <div className="mt-3 h-64">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={data.monthlyTrend}>
@@ -65,8 +65,8 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <div className="rounded-lg border border-zinc-200 bg-white p-4">
-          <p className="text-sm font-medium text-zinc-700">Expenses by Category</p>
+        <div className="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4">
+          <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Expenses by Category</p>
           <div className="mt-3 h-64">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -83,26 +83,26 @@ export default function DashboardPage() {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <div className="rounded-lg border border-zinc-200 bg-white p-4">
-          <p className="text-sm font-medium text-zinc-700">Supplier Summary (top spend)</p>
+        <div className="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4">
+          <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Supplier Summary (top spend)</p>
           <ul className="mt-3 space-y-2 text-sm">
             {data.supplierSummary.length === 0 && <li className="text-zinc-400">No invoice data yet.</li>}
             {data.supplierSummary.map((s) => (
-              <li key={s.name} className="flex justify-between border-b border-zinc-100 pb-1.5">
-                <span className="text-zinc-700">{s.name}</span>
-                <span className="font-medium text-zinc-900">₹{s.total.toFixed(2)}</span>
+              <li key={s.name} className="flex justify-between border-b border-zinc-100 dark:border-zinc-800 pb-1.5">
+                <span className="text-zinc-700 dark:text-zinc-300">{s.name}</span>
+                <span className="font-medium text-zinc-900 dark:text-zinc-100">₹{s.total.toFixed(2)}</span>
               </li>
             ))}
           </ul>
         </div>
 
-        <div className="rounded-lg border border-zinc-200 bg-white p-4">
-          <p className="text-sm font-medium text-zinc-700">Low Stock Items</p>
+        <div className="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4">
+          <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Low Stock Items</p>
           <ul className="mt-3 space-y-2 text-sm">
             {data.lowStockIngredients.length === 0 && <li className="text-zinc-400">Everything is well stocked.</li>}
             {data.lowStockIngredients.map((i) => (
-              <li key={i.name} className="flex justify-between border-b border-zinc-100 pb-1.5">
-                <span className="text-zinc-700">{i.name}</span>
+              <li key={i.name} className="flex justify-between border-b border-zinc-100 dark:border-zinc-800 pb-1.5">
+                <span className="text-zinc-700 dark:text-zinc-300">{i.name}</span>
                 <span className="font-medium text-red-600">
                   {i.currentStock} {i.unit} (reorder at {i.reorderThreshold})
                 </span>

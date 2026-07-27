@@ -1,8 +1,20 @@
 @import "tailwindcss";
 
+/* Dark mode is an explicit user toggle (a `.dark` class on <html>, set by
+   components/ThemeToggle.tsx + a pre-paint script in app/layout.tsx), not
+   the OS `prefers-color-scheme` — that's what caused the original
+   unreadable-input bug: an OS dark preference silently reflowed the whole
+   app without the user asking for it. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
+}
+
+.dark {
+  --background: #09090b;
+  --foreground: #f4f4f5;
 }
 
 @theme inline {
@@ -12,26 +24,25 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
 
-/* Form controls are styled with light backgrounds throughout the app
-   (bg-white / border-zinc-300 etc.), so force dark, readable text/caret
-   regardless of the OS color scheme — otherwise dark-mode users inherit
-   the page's light --foreground text color on a white input background. */
-input,
+/* Text-entry controls are deliberately kept light in both themes (a
+   plain white box reads fine on either a light or dark page), so force an
+   explicit white background + dark text/caret regardless of theme —
+   otherwise dark-mode users would get the page's light --foreground text
+   color rendered on a white box, which is what originally made the
+   login inputs unreadable. `file` inputs are excluded: they render their
+   "no file chosen" text directly on the surrounding (possibly dark) card
+   background rather than in a white box, so they're styled per-component
+   with theme-aware Tailwind classes instead. */
+input:not([type="file"]),
 select,
 textarea {
+  background-color: #ffffff;
   color: #171717;
   caret-color: #171717;
 }

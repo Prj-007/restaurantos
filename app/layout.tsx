@@ -26,8 +26,20 @@ export default function RootLayout({
     <html
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <head>
+        {/* Applies the saved theme before first paint, so there's no light-mode flash for dark-mode users. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try {
+              var theme = localStorage.getItem('theme');
+              if (theme === 'dark') document.documentElement.classList.add('dark');
+            } catch (e) {}`,
+          }}
+        />
+      </head>
+      <body className="min-h-full flex flex-col bg-white dark:bg-zinc-900 dark:bg-zinc-950">{children}</body>
     </html>
   );
 }

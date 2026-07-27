@@ -34,11 +34,11 @@ export default function InvoicesPage() {
     <div>
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold text-zinc-900">Supplier Invoices</h1>
-          <p className="text-sm text-zinc-500">All invoices processed through AI extraction.</p>
+          <h1 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">Supplier Invoices</h1>
+          <p className="text-sm text-zinc-500 dark:text-zinc-400">All invoices processed through AI extraction.</p>
         </div>
         <div className="flex gap-2">
-          <a href="/api/expense-register/export" className="rounded-md border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50">
+          <a href="/api/expense-register/export" className="rounded-md border border-zinc-300 dark:border-zinc-700 px-4 py-2 text-sm font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800">
             Export Expense Register (.xlsx)
           </a>
           <Link href="/invoices/upload" className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800">
@@ -47,9 +47,9 @@ export default function InvoicesPage() {
         </div>
       </div>
 
-      <div className="mt-4 overflow-x-auto rounded-lg border border-zinc-200 bg-white">
+      <div className="mt-4 overflow-x-auto rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
         <table className="w-full text-sm">
-          <thead className="bg-zinc-50 text-left text-xs uppercase tracking-wide text-zinc-500">
+          <thead className="bg-zinc-50 dark:bg-zinc-900 text-left text-xs uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
             <tr>
               <th className="px-4 py-2.5 font-medium">Vendor</th>
               <th className="px-4 py-2.5 font-medium">Invoice #</th>
@@ -60,7 +60,7 @@ export default function InvoicesPage() {
               <th className="px-4 py-2.5 font-medium">Status</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-zinc-100">
+          <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
             {loading ? (
               <tr>
                 <td colSpan={7} className="px-4 py-6 text-center text-zinc-400">
@@ -75,16 +75,16 @@ export default function InvoicesPage() {
               </tr>
             ) : (
               invoices.map((inv) => (
-                <tr key={inv.id} className="hover:bg-zinc-50">
+                <tr key={inv.id} className="hover:bg-zinc-50 dark:hover:bg-zinc-800">
                   <td className="px-4 py-2.5">
-                    <Link href={`/invoices/${inv.id}`} className="font-medium text-zinc-900 hover:underline">
+                    <Link href={`/invoices/${inv.id}`} className="font-medium text-zinc-900 dark:text-zinc-100 hover:underline">
                       {inv.supplier?.name ?? inv.vendorNameRaw ?? "Unknown"}
                     </Link>
                   </td>
-                  <td className="px-4 py-2.5 text-zinc-600">{inv.invoiceNumber ?? "—"}</td>
-                  <td className="px-4 py-2.5 text-zinc-600">{inv.invoiceDate ? new Date(inv.invoiceDate).toLocaleDateString() : "—"}</td>
-                  <td className="px-4 py-2.5 text-zinc-600">{inv.expenseCategory?.name ?? "—"}</td>
-                  <td className="px-4 py-2.5 font-medium text-zinc-900">
+                  <td className="px-4 py-2.5 text-zinc-600 dark:text-zinc-400">{inv.invoiceNumber ?? "—"}</td>
+                  <td className="px-4 py-2.5 text-zinc-600 dark:text-zinc-400">{inv.invoiceDate ? new Date(inv.invoiceDate).toLocaleDateString() : "—"}</td>
+                  <td className="px-4 py-2.5 text-zinc-600 dark:text-zinc-400">{inv.expenseCategory?.name ?? "—"}</td>
+                  <td className="px-4 py-2.5 font-medium text-zinc-900 dark:text-zinc-100">
                     {inv.currency} {inv.totalAmount?.toFixed(2) ?? "—"}
                   </td>
                   <td className="px-4 py-2.5">
@@ -95,7 +95,7 @@ export default function InvoicesPage() {
                     )}
                   </td>
                   <td className="px-4 py-2.5">
-                    <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-700">{inv.status}</span>
+                    <span className="rounded-full bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 text-xs font-medium text-zinc-700 dark:text-zinc-300">{inv.status}</span>
                   </td>
                 </tr>
               ))

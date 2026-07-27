@@ -82,7 +82,7 @@ export default function CrudTable({
   return (
     <div>
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-zinc-900">{title}</h1>
+        <h1 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">{title}</h1>
         <button
           onClick={() => setShowForm((s) => !s)}
           className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800"
@@ -92,16 +92,16 @@ export default function CrudTable({
       </div>
 
       {showForm && (
-        <form onSubmit={handleCreate} className="mt-4 grid grid-cols-2 gap-3 rounded-lg border border-zinc-200 bg-white p-4 sm:grid-cols-3">
+        <form onSubmit={handleCreate} className="mt-4 grid grid-cols-2 gap-3 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 sm:grid-cols-3">
           {fields.map((f) => (
             <div key={f.key}>
-              <label className="block text-xs font-medium text-zinc-600">{f.label}</label>
+              <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400">{f.label}</label>
               {f.type === "select" ? (
                 <select
                   required={f.required}
                   value={form[f.key] ?? ""}
                   onChange={(e) => setForm((s) => ({ ...s, [f.key]: e.target.value }))}
-                  className="mt-1 w-full rounded-md border border-zinc-300 px-2 py-1.5 text-sm focus:border-zinc-900 focus:outline-none"
+                  className="mt-1 w-full rounded-md border border-zinc-300 dark:border-zinc-700 px-2 py-1.5 text-sm focus:border-zinc-900 focus:outline-none"
                 >
                   <option value="">Select...</option>
                   {(f.options ?? []).map((o) => (
@@ -116,7 +116,7 @@ export default function CrudTable({
                   required={f.required}
                   value={form[f.key] ?? ""}
                   onChange={(e) => setForm((s) => ({ ...s, [f.key]: e.target.value }))}
-                  className="mt-1 w-full rounded-md border border-zinc-300 px-2 py-1.5 text-sm focus:border-zinc-900 focus:outline-none"
+                  className="mt-1 w-full rounded-md border border-zinc-300 dark:border-zinc-700 px-2 py-1.5 text-sm focus:border-zinc-900 focus:outline-none"
                 />
               )}
             </div>
@@ -130,9 +130,9 @@ export default function CrudTable({
         </form>
       )}
 
-      <div className="mt-4 overflow-x-auto rounded-lg border border-zinc-200 bg-white">
+      <div className="mt-4 overflow-x-auto rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
         <table className="w-full text-sm">
-          <thead className="bg-zinc-50 text-left text-xs uppercase tracking-wide text-zinc-500">
+          <thead className="bg-zinc-50 dark:bg-zinc-900 text-left text-xs uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
             <tr>
               {columns.map((c) => (
                 <th key={c.key} className="px-4 py-2.5 font-medium">
@@ -142,7 +142,7 @@ export default function CrudTable({
               <th className="px-4 py-2.5" />
             </tr>
           </thead>
-          <tbody className="divide-y divide-zinc-100">
+          <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
             {loading ? (
               <tr>
                 <td colSpan={columns.length + 1} className="px-4 py-6 text-center text-zinc-400">
@@ -157,9 +157,9 @@ export default function CrudTable({
               </tr>
             ) : (
               rows.map((row) => (
-                <tr key={row.id as string} className="hover:bg-zinc-50">
+                <tr key={row.id as string} className="hover:bg-zinc-50 dark:hover:bg-zinc-800">
                   {columns.map((c) => (
-                    <td key={c.key} className="px-4 py-2.5 text-zinc-700">
+                    <td key={c.key} className="px-4 py-2.5 text-zinc-700 dark:text-zinc-300">
                       {c.render ? c.render(row) : ((row[c.key] as string) ?? "—")}
                     </td>
                   ))}
