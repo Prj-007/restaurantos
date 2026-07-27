@@ -60,7 +60,7 @@ Return ONLY the structured data. If a numeric field is illegible or absent, use 
 
 export async function extractInvoice(fileBuffer: Buffer, mimeType: string): Promise<ExtractedInvoice> {
   const model = genAI.getGenerativeModel({
-    model: "gemini-2.0-flash",
+    model: "gemini-2.5-flash",
     generationConfig: {
       responseMimeType: "application/json",
       responseSchema: invoiceSchema,
@@ -91,7 +91,7 @@ export async function suggestMenuPrice(input: {
   ingredients: { name: string; quantity: number; unit: string; costPerUnit: number }[];
 }): Promise<PricingSuggestion> {
   const model = genAI.getGenerativeModel({
-    model: "gemini-2.0-flash",
+    model: "gemini-2.5-flash",
     generationConfig: {
       responseMimeType: "application/json",
       responseSchema: pricingSchema,
