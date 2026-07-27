@@ -48,6 +48,7 @@ model User {
 
   invoices       Invoice[]
   expenseRecords ExpenseRecord[]
+  wasteLogs      WasteLog[]
 }
 
 // --- Restaurant operations -------------------------------------------------
@@ -84,6 +85,7 @@ model Ingredient {
   createdAt         DateTime @default(now())
 
   recipeUses RecipeIngredient[]
+  wasteLogs  WasteLog[]
 }
 
 // Join table: which ingredients (and how much of each) go into a menu item.
@@ -212,6 +214,33 @@ model ExpenseRecord {
 }
 
 // --- Inventory ---------------------------------------------------------
+
+// Activity / audit trail — one row per notable mutation across the app.
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorId    String
+  actorName  String
+  action     String // e.g. "INVOICE_APPROVED", "SUPPLIER_CREATED"
+  entityType String // e.g. "Invoice", "Supplier"
+  entityId   String?
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  @@index([createdAt])
+}
+
+// Ingredient wastage entries — feeds the "analyze waste" AI feature.
+model WasteLog {
+  id           String   @id @default(cuid())
+  ingredientId String
+  quantity     Float
+  reason       String?
+  loggedById   String
+  createdAt    DateTime @default(now())
+
+  ingredient Ingredient @relation(fields: [ingredientId], references: [id])
+  loggedBy   User       @relation(fields: [loggedById], references: [id])
+}
 
 model PurchaseOrder {
   id          String   @id @default(cuid())
