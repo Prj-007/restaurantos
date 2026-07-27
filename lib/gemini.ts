@@ -121,3 +121,148 @@ const pricingSchema: ResponseSchema = {
   },
   required: ["suggestedPrice", "estimatedFoodCost", "estimatedMarginPercent", "rationale"],
 };
+
+// --- AI feature #3: ingredient shortage prediction + reorder quantities ----
+
+export type ShortageAnalysis = {
+  predictions: {
+    ingredientName: string;
+    daysUntilShortage: number | null;
+    urgency: "critical" | "soon" | "monitor";
+    recommendedReorderQuantity: number;
+    reasoning: string;
+  }[];
+  summary: string;
+};
+
+const shortageSchema: ResponseSchema = {
+  type: SchemaType.OBJECT,
+  properties: {
+    predictions: {
+      type: SchemaType.ARRAY,
+      items: {
+        type: SchemaType.OBJECT,
+        properties: {
+          ingredientName: { type: SchemaType.STRING },
+          daysUntilShortage: { type: SchemaType.NUMBER, nullable: true, description: "Estimated days until stock hits zero at current usage rate; null if not estimable" },
+          urgency: { type: SchemaType.STRING, enum: ["critical", "soon", "monitor"], format: "enum" },
+          recommendedReorderQuantity: { type: SchemaType.NUMBER, description: "How much to reorder now, in the ingredient's unit" },
+          reasoning: { type: SchemaType.STRING },
+        },
+        required: ["ingredientName", "urgency", "recommendedReorderQuantity", "reasoning"],
+      },
+    },
+    summary: { type: SchemaType.STRING },
+  },
+  required: ["predictions", "summary"],
+};
+
+// Predicts which ingredients will run short and how much to reorder, from
+// current stock levels, reorder thresholds, and recent consumption implied
+// by recent orders (menu items sold -> recipe ingredient quantities used).
+export async function analyzeShortagesAndReorder(input: {
+  ingredients: { name: string; unit: string; currentStock: number; reorderThreshold: number; recentUsage: number }[];
+}): Promise<ShortageAnalysis> {
+  const model = genAI.getGenerativeModel({
+    model: "gemini-2.5-flash",
+    generationConfig: { responseMimeType: "application/json", responseSchema: shortageSchema },
+  });
+
+  const prompt = `You are inventory-planning for a restaurant. For each ingredient below, predict how many days until it runs out at its recent usage rate, classify urgency (critical = under 3 days or already at/below reorder threshold, soon = under 10 days, monitor = otherwise), and recommend a reorder quantity that would cover roughly 14 days of usage plus a safety buffer.
+
+Ingredients (name, unit, currentStock, reorderThreshold, recentUsage = amount consumed in the last 7 days):
+${input.ingredients.map((i) => `- ${i.name}: unit=${i.unit}, currentStock=${i.currentStock}, reorderThreshold=${i.reorderThreshold}, recentUsage(7d)=${i.recentUsage}`).join("\n")}
+
+Give a short overall summary too.`;
+
+  const result = await model.generateContent(prompt);
+  return JSON.parse(result.response.text()) as ShortageAnalysis;
+}
+
+// --- AI feature #4: food preparation time estimate --------------------------
+
+export type PrepTimeEstimate = {
+  estimatedMinutes: number;
+  complexity: "simple" | "moderate" | "complex";
+  reasoning: string;
+};
+
+const prepTimeSchema: ResponseSchema = {
+  type: SchemaType.OBJECT,
+  properties: {
+    estimatedMinutes: { type: SchemaType.NUMBER },
+    complexity: { type: SchemaType.STRING, enum: ["simple", "moderate", "complex"], format: "enum" },
+    reasoning: { type: SchemaType.STRING },
+  },
+  required: ["estimatedMinutes", "complexity", "reasoning"],
+};
+
+export async function estimatePrepTime(input: {
+  menuItemName: string;
+  category: string;
+  ingredients: { name: string; quantity: number; unit: string }[];
+}): Promise<PrepTimeEstimate> {
+  const model = genAI.getGenerativeModel({
+    model: "gemini-2.5-flash",
+    generationConfig: { responseMimeType: "application/json", responseSchema: prepTimeSchema },
+  });
+
+  const prompt = `Estimate realistic kitchen preparation + cook time (in minutes, from order placed to plated) for this restaurant menu item, for a typical mid-size restaurant kitchen during service (not from scratch/prep-ahead time).
+
+Menu item: "${input.menuItemName}" (category: ${input.category})
+Ingredients: ${input.ingredients.map((i) => `${i.quantity} ${i.unit} ${i.name}`).join(", ") || "not specified"}
+
+Classify complexity and give a one-sentence reasoning.`;
+
+  const result = await model.generateContent(prompt);
+  return JSON.parse(result.response.text()) as PrepTimeEstimate;
+}
+
+// --- AI feature #5: ingredient waste analysis --------------------------------
+
+export type WasteAnalysis = {
+  topOffenders: { ingredientName: string; totalWasted: number; unit: string; estimatedCost: number }[];
+  recommendations: string[];
+  summary: string;
+};
+
+const wasteAnalysisSchema: ResponseSchema = {
+  type: SchemaType.OBJECT,
+  properties: {
+    topOffenders: {
+      type: SchemaType.ARRAY,
+      items: {
+        type: SchemaType.OBJECT,
+        properties: {
+          ingredientName: { type: SchemaType.STRING },
+          totalWasted: { type: SchemaType.NUMBER },
+          unit: { type: SchemaType.STRING },
+          estimatedCost: { type: SchemaType.NUMBER },
+        },
+        required: ["ingredientName", "totalWasted", "unit", "estimatedCost"],
+      },
+    },
+    recommendations: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING } },
+    summary: { type: SchemaType.STRING },
+  },
+  required: ["topOffenders", "recommendations", "summary"],
+};
+
+export async function analyzeWaste(input: {
+  wasteLogs: { ingredientName: string; unit: string; quantity: number; costPerUnit: number; reason: string | null; date: string }[];
+}): Promise<WasteAnalysis> {
+  const model = genAI.getGenerativeModel({
+    model: "gemini-2.5-flash",
+    generationConfig: { responseMimeType: "application/json", responseSchema: wasteAnalysisSchema },
+  });
+
+  const prompt = `Analyze this restaurant's logged ingredient waste over the recent period and identify the top offenders by estimated cost impact (quantity x costPerUnit), plus 3-5 concrete, actionable recommendations to reduce waste (e.g. portioning, storage, ordering frequency, prep timing) grounded in the actual logged reasons where possible.
+
+Waste log entries (ingredient, unit, quantity wasted, cost per unit, reason, date):
+${input.wasteLogs.map((w) => `- ${w.ingredientName}: ${w.quantity} ${w.unit} @ ${w.costPerUnit}/${w.unit}, reason="${w.reason ?? "unspecified"}", date=${w.date}`).join("\n")}
+
+Give a short overall summary too.`;
+
+  const result = await model.generateContent(prompt);
+  return JSON.parse(result.response.text()) as WasteAnalysis;
+}
