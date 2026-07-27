@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { logActivity } from "@/lib/audit";
 
 export async function GET() {
   const session = await getSession();
@@ -79,6 +80,12 @@ export async function POST(req: NextRequest) {
       },
     },
     include: { lineItems: true, expenseRecords: true },
+  });
+
+  await logActivity(session, "INVOICE_CREATED", "Invoice", invoice.id, {
+    vendorName: vendorName || invoice.vendorNameRaw,
+    totalAmount: invoice.totalAmount,
+    isHandwritten: invoice.isHandwritten,
   });
 
   return NextResponse.json(invoice, { status: 201 });

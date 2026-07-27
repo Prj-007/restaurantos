@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { logActivity } from "@/lib/audit";
 
 export async function GET() {
   const session = await getSession();
@@ -24,5 +25,6 @@ export async function POST(req: NextRequest) {
       taxId: body.taxId || null,
     },
   });
+  await logActivity(session, "SUPPLIER_CREATED", "Supplier", supplier.id, { name: supplier.name });
   return NextResponse.json(supplier, { status: 201 });
 }

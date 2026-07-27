@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { logActivity } from "@/lib/audit";
 
 export async function GET() {
   const session = await getSession();
@@ -25,5 +26,6 @@ export async function POST(req: NextRequest) {
       description: body.description || null,
     },
   });
+  await logActivity(session, "MENU_ITEM_CREATED", "MenuItem", item.id, { name: item.name });
   return NextResponse.json(item, { status: 201 });
 }

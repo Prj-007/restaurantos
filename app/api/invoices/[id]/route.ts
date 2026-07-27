@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { logActivity } from "@/lib/audit";
 
 type RouteContext = { params: Promise<{ id: string }> };
 
@@ -32,5 +33,10 @@ export async function PATCH(req: NextRequest, { params }: RouteContext) {
       expenseCategoryId: body.expenseCategoryId ?? undefined,
     },
   });
+
+  if (body.status === "APPROVED") {
+    await logActivity(session, "INVOICE_APPROVED", "Invoice", invoice.id);
+  }
+
   return NextResponse.json(invoice);
 }

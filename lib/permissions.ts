@@ -14,6 +14,7 @@ export const ROUTE_PERMISSIONS: { prefix: string; roles: Role[] }[] = [
   { prefix: "/tables", roles: ["OWNER", "MANAGER", "WAITER", "CASHIER"] },
   { prefix: "/orders", roles: ["OWNER", "MANAGER", "WAITER", "CASHIER", "CHEF"] },
   { prefix: "/staff", roles: ["OWNER", "MANAGER"] },
+  { prefix: "/audit-log", roles: ["OWNER", "MANAGER"] },
 ];
 
 export function isAllowed(pathname: string, role: Role): boolean {
