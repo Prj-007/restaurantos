@@ -1,0 +1,224 @@
+// RestaurantOS database schema
+// Deliberately flat and explicit (no advanced Prisma features) so the whole
+// data model can be read top-to-bottom in one pass.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  OWNER
+  MANAGER
+  CHEF
+  WAITER
+  CASHIER
+}
+
+enum InvoiceStatus {
+  PENDING_REVIEW
+  APPROVED
+}
+
+enum TableStatus {
+  AVAILABLE
+  OCCUPIED
+  RESERVED
+}
+
+enum OrderStatus {
+  OPEN
+  IN_KITCHEN
+  SERVED
+  PAID
+  CANCELLED
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         Role
+  createdAt    DateTime @default(now())
+
+  invoices       Invoice[]
+  expenseRecords ExpenseRecord[]
+}
+
+// --- Restaurant operations -------------------------------------------------
+
+model RestaurantTable {
+  id       String      @id @default(cuid())
+  number   Int         @unique
+  capacity Int
+  status   TableStatus @default(AVAILABLE)
+
+  orders Order[]
+}
+
+model MenuItem {
+  id          String   @id @default(cuid())
+  name        String
+  category    String
+  price       Float
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  recipeIngredients RecipeIngredient[]
+  orderItems        OrderItem[]
+}
+
+model Ingredient {
+  id                String   @id @default(cuid())
+  name              String
+  unit              String // e.g. kg, litre, piece
+  costPerUnit       Float
+  currentStock      Float    @default(0)
+  reorderThreshold  Float    @default(0)
+  createdAt         DateTime @default(now())
+
+  recipeUses RecipeIngredient[]
+}
+
+// Join table: which ingredients (and how much of each) go into a menu item.
+// This is what powers the "suggest menu pricing" AI feature.
+model RecipeIngredient {
+  id           String @id @default(cuid())
+  menuItemId   String
+  ingredientId String
+  quantity     Float
+
+  menuItem   MenuItem   @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
+  ingredient Ingredient @relation(fields: [ingredientId], references: [id], onDelete: Cascade)
+
+  @@unique([menuItemId, ingredientId])
+}
+
+model Order {
+  id        String      @id @default(cuid())
+  tableId   String?
+  status    OrderStatus @default(OPEN)
+  createdAt DateTime    @default(now())
+
+  table RestaurantTable? @relation(fields: [tableId], references: [id])
+  items OrderItem[]
+}
+
+model OrderItem {
+  id         String @id @default(cuid())
+  orderId    String
+  menuItemId String
+  quantity   Int
+  unitPrice  Float
+
+  order    Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  menuItem MenuItem @relation(fields: [menuItemId], references: [id])
+}
+
+model Staff {
+  id        String   @id @default(cuid())
+  name      String
+  role      Role
+  phone     String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
+
+// --- Suppliers & Expenses (incl. AI invoice processing) --------------------
+
+model Supplier {
+  id          String   @id @default(cuid())
+  name        String
+  contactName String?
+  phone       String?
+  email       String?
+  address     String?
+  taxId       String?
+  createdAt   DateTime @default(now())
+
+  invoices        Invoice[]
+  purchaseOrders  PurchaseOrder[]
+}
+
+model ExpenseCategory {
+  id          String @id @default(cuid())
+  name        String @unique
+  description String?
+
+  invoices       Invoice[]
+  expenseRecords ExpenseRecord[]
+}
+
+// One row per uploaded supplier invoice, printed or handwritten.
+model Invoice {
+  id                String        @id @default(cuid())
+  supplierId        String?
+  expenseCategoryId String?
+  vendorNameRaw     String? // vendor name as read by AI, kept even if not linked to a Supplier record
+  invoiceNumber     String?
+  invoiceDate       DateTime?
+  subtotal          Float?
+  taxAmount         Float?
+  totalAmount       Float?
+  currency          String        @default("USD")
+  fileUrl           String
+  fileName          String
+  isHandwritten     Boolean       @default(false)
+  ocrConfidence     Float? // 0-1, self-reported by the model
+  rawExtractionJson Json? // full raw AI response, kept for audit/debugging
+  status            InvoiceStatus @default(PENDING_REVIEW)
+  createdById       String
+  createdAt         DateTime      @default(now())
+
+  supplier        Supplier?        @relation(fields: [supplierId], references: [id])
+  expenseCategory ExpenseCategory? @relation(fields: [expenseCategoryId], references: [id])
+  createdBy       User             @relation(fields: [createdById], references: [id])
+  lineItems       InvoiceLineItem[]
+  expenseRecords  ExpenseRecord[]
+}
+
+model InvoiceLineItem {
+  id          String @id @default(cuid())
+  invoiceId   String
+  description String
+  quantity    Float?
+  unitPrice   Float?
+  lineTotal   Float?
+
+  invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+}
+
+// The expense register: one row per expense, whether it came from an
+// AI-processed invoice or was entered manually.
+model ExpenseRecord {
+  id          String   @id @default(cuid())
+  invoiceId   String?
+  categoryId  String
+  description String
+  amount      Float
+  expenseDate DateTime
+  createdById String
+  createdAt   DateTime @default(now())
+
+  invoice   Invoice?        @relation(fields: [invoiceId], references: [id])
+  category  ExpenseCategory @relation(fields: [categoryId], references: [id])
+  createdBy User            @relation(fields: [createdById], references: [id])
+}
+
+// --- Inventory ---------------------------------------------------------
+
+model PurchaseOrder {
+  id          String   @id @default(cuid())
+  supplierId  String
+  status      String   @default("PENDING") // PENDING, RECEIVED, CANCELLED
+  totalAmount Float
+  orderedAt   DateTime @default(now())
+
+  supplier Supplier @relation(fields: [supplierId], references: [id])
+}

@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local dev fallback storage for uploaded invoice files (not used in prod)
+/public/uploads
