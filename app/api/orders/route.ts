@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { logActivity } from "@/lib/audit";
+import { publishOrderUpdate } from "@/lib/realtime";
 
 export async function GET() {
   const session = await getSession();
@@ -30,6 +32,9 @@ export async function POST(req: NextRequest) {
   if (body.tableId) {
     await prisma.restaurantTable.update({ where: { id: body.tableId }, data: { status: "OCCUPIED" } });
   }
+
+  await logActivity(session, "ORDER_CREATED", "Order", order.id, { tableId: order.tableId, itemCount: items.length });
+  await publishOrderUpdate(order);
 
   return NextResponse.json(order, { status: 201 });
 }
